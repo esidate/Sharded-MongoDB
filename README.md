@@ -183,36 +183,6 @@ mongosh --host 127.0.0.1 --port 27017 --authenticationDatabase admin --username 
 
 As you can see it's not working.
 
-Now let's create a user accessible only from `127.0.0.1`.
-
-```sh
-mongosh --host 127.0.0.1 --port 27017 --authenticationDatabase admin --username root --password OmarIsVerySecure # Connect to mongodb master as root
-```
-
-```js
-use admin // switch to admin db
-db.createUser({
-  user: "UserFive",
-  pwd: "VerySecurePassword",
-  roles: [{ role: "read", db: "admin" }],
-    authenticationRestrictions: [
-     {
-       clientSource: ["127.0.0.1"],
-     },
-  ],
-});
-```
-
-Now let's try to connect to the account from our host machine
-
-```sh
-mongosh --host 127.0.0.1 --port 27017 --authenticationDatabase admin --username UserFive --password VerySecurePassword
-
-# Current Mongosh Log ID: 62818329ac12c87a00fa2618
-# Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&authSource=admin&appName=mongosh+1.4.1
-# MongoServerError: Authentication failed.
-```
-
 ## Resources
 
 - MongoDB POCDriver: https://github.com/johnlpage/POCDriver/tree/885f4e7f67a43fec69a29c9334344419c65839b4
