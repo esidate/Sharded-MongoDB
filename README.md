@@ -28,6 +28,11 @@ java -jar POCDriver.jar -c "mongodb://root:OmarIsVerySecure@localhost:27017" -d 
 sudo ./ps_mem.py -w 2
 ```
 
+- You can access Grafana on `http://0.0.0.0:3000/` (default creds: admin,admin)
+- Download the [grafa cAdvisor dashboard as a JSON](https://grafana.com/grafana/dashboards/14282)
+- On the left sidebar in Grafana hover on the settings icon, click on Data sources. Click on add Data source, click on prometheus, fill URL with `http://prometheus:9090` and hit "Save".
+- On the left sidebar in Grafana hover the plus button to create a dashboard and select "Import". Copy and past the Grafana cAdvisor Dashboard JSON, then click on "Load" and Select the Data Source (Prometheus), and finally click on import.
+
 ```js
 // Check cluster status
 sh.status();
