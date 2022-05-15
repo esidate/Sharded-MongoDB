@@ -1,0 +1,98 @@
+version: '2'
+
+services:
+  mongos:
+    image: 'bitnami/mongodb-sharded:latest'
+    environment:
+      - MONGODB_SHARDING_MODE=mongos
+      - MONGODB_CFG_PRIMARY_HOST=mongo-configsvr
+      - MONGODB_CFG_REPLICA_SET_NAME=cfgreplicaset
+      - MONGODB_REPLICA_SET_KEY=OmarRSKey
+      - MONGODB_ROOT_PASSWORD=OmarIsVerySecure
+      - MONGODB_ADVERTISED_HOSTNAME=mongos
+    ports:
+      - "27017:27017"
+
+  mongo-shard-0:
+    image: 'bitnami/mongodb-sharded:latest'
+    environment:
+      - MONGODB_SHARDING_MODE=shardsvr
+      - MONGODB_MONGOS_HOST=mongos
+      - MONGODB_ROOT_PASSWORD=OmarIsVerySecure
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=OmarRSKey
+      - MONGODB_REPLICA_SET_NAME=shard0
+      - MONGODB_ADVERTISED_HOSTNAME=mongo-shard-0
+    ports:
+      - "27018:27017"
+
+  mongo-shard-1:
+    image: 'bitnami/mongodb-sharded:latest'
+    environment:
+      - MONGODB_SHARDING_MODE=shardsvr
+      - MONGODB_MONGOS_HOST=mongos
+      - MONGODB_ROOT_PASSWORD=OmarIsVerySecure
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=OmarRSKey
+      - MONGODB_REPLICA_SET_NAME=shard1
+      - MONGODB_ADVERTISED_HOSTNAME=mongo-shard-1
+    ports:
+      - "27019:27017"
+
+  mongo-shard-2:
+    image: 'bitnami/mongodb-sharded:latest'
+    environment:
+      - MONGODB_SHARDING_MODE=shardsvr
+      - MONGODB_MONGOS_HOST=mongos
+      - MONGODB_ROOT_PASSWORD=OmarIsVerySecure
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=OmarRSKey
+      - MONGODB_REPLICA_SET_NAME=shard2
+      - MONGODB_ADVERTISED_HOSTNAME=mongo-shard-2
+    ports:
+      - "27020:27017"
+
+  mongo-configsvr:
+    image: 'bitnami/mongodb-sharded:latest'
+    environment:
+      - MONGODB_SHARDING_MODE=configsvr
+      - MONGODB_ROOT_PASSWORD=OmarIsVerySecure
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=OmarRSKey
+      - MONGODB_REPLICA_SET_NAME=config-replicaset
+      - MONGODB_ADVERTISED_HOSTNAME=mongo-configsvr
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - cadvisor
+
+  grafana:
+    image: grafana/grafana-enterprise:latest
+    ports:
+      - 3000:3000
+    user: '104'
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    depends_on:
+      - mongos
+      - mongo-shard-0
+      - mongo-shard-1
+      - mongo-shard-2
+      - mongo-configsvr
