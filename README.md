@@ -5,8 +5,8 @@
 ## Todo
 
 - [x] Implement Shard DB cluster (docker-compose, mongos, shardsvr, configsvr)
-- [ ] Manage DB Access
-- [ ] Manage System Access
+- [x] Manage DB Access
+- [x] Manage System Access
 - [ ] Manage Network Access
 - [x] DB metrics monitoring (cAdvisor, Prometheus, Grafana)
 - [ ] ~~Maybe manage backups~~
@@ -39,7 +39,7 @@ sh.shardCollection("sample.restaurant", { city: 1 });
 sh.status();
 ```
 
-### Manage System Access
+### Access Management
 
 Unauthenticated users can run multiple commands, but they are useless:
 
@@ -59,7 +59,11 @@ db.runCommand({ listCollections: 1 });
 // MongoServerError: command listCollections requires authentication
 ```
 
-Let's create bunch of users with different roles
+Let's create bunch of users with different roles (as root)
+
+```sh
+mongosh --host 127.0.0.1 --port 27017 --authenticationDatabase admin --username root --password OmarIsVerySecure # Connect to mongodb master as root
+```
 
 ```js
 use admin // switch to admin db
@@ -75,7 +79,26 @@ db.createUser({
   pwd: "VerySecurePassword",
   roles: [{ role: "readWrite", db: "admin" }],
 });
+// A user with the read adn write privileges but on database "test"
+db.createUser({
+  user: "UserThree",
+  pwd: "VerySecurePassword",
+  roles: [{ role: "readWrite", db: "test" }],
+});
 ```
+
+### Database access management
+
+If we try to connect as `UserThree` to database `admin` we get an error:
+
+```sh
+mongosh --host 127.0.0.1 --port 27017 --authenticationDatabase admin --username UserThree --password VerySecurePassword # Connect to mongodb master as UserTwo
+# Current Mongosh Log ID: 6281684b6599f93f1172238b
+# Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&authSource=admin&appName=mongosh+1.4.1
+# MongoServerError: Authentication failed.
+```
+
+### System access mangement
 
 Now let's connect as `UserOne` and test some commands that requires `read` privileges
 
@@ -125,6 +148,70 @@ db.collection.insert({ test: "test" });
 ```
 
 It's successful.
+
+### Manage Network Access
+
+Now let's create a user accessible only from a certain random IP.
+
+```sh
+mongosh --host 127.0.0.1 --port 27017 --authenticationDatabase admin --username root --password OmarIsVerySecure # Connect to mongodb master as root
+```
+
+```js
+use admin // switch to admin db
+db.createUser({
+  user: "UserFour",
+  pwd: "VerySecurePassword",
+  roles: [{ role: "read", db: "admin" }],
+    authenticationRestrictions: [
+     {
+       clientSource: ["172.24.0.4"],
+     },
+  ],
+});
+```
+
+Now let's try to connect to the account from our host machine
+
+```sh
+mongosh --host 127.0.0.1 --port 27017 --authenticationDatabase admin --username UserFour --password VerySecurePassword
+
+# Current Mongosh Log ID: 62818329ac12c87a00fa2618
+# Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&authSource=admin&appName=mongosh+1.4.1
+# MongoServerError: Authentication failed.
+```
+
+As you can see it's not working.
+
+Now let's create a user accessible only from `127.0.0.1`.
+
+```sh
+mongosh --host 127.0.0.1 --port 27017 --authenticationDatabase admin --username root --password OmarIsVerySecure # Connect to mongodb master as root
+```
+
+```js
+use admin // switch to admin db
+db.createUser({
+  user: "UserFive",
+  pwd: "VerySecurePassword",
+  roles: [{ role: "read", db: "admin" }],
+    authenticationRestrictions: [
+     {
+       clientSource: ["127.0.0.1"],
+     },
+  ],
+});
+```
+
+Now let's try to connect to the account from our host machine
+
+```sh
+mongosh --host 127.0.0.1 --port 27017 --authenticationDatabase admin --username UserFive --password VerySecurePassword
+
+# Current Mongosh Log ID: 62818329ac12c87a00fa2618
+# Connecting to:          mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&authSource=admin&appName=mongosh+1.4.1
+# MongoServerError: Authentication failed.
+```
 
 ## Resources
 
