@@ -7,7 +7,7 @@
 - [x] Implement Shard DB cluster (docker-compose, mongos, shardsvr, configsvr)
 - [x] Manage DB Access
 - [x] Manage System Access
-- [ ] Manage Network Access
+- [x] Manage Network Access
 - [x] DB metrics monitoring (cAdvisor, Prometheus, Grafana)
 - [ ] ~~Maybe manage backups~~
 - [ ] Application to operate on the DB
