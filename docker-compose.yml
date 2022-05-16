@@ -105,5 +105,11 @@ services:
       - mongo-configsvr
     networks:
       - shared
+  debian:
+    image: debian:buster-slim
+    entrypoint: [ "/bin/bash", "-c", "--" ]
+    command: [ "while true; do sleep 30; done;" ]
+    networks:
+      - shared
 networks:
   shared: {}
