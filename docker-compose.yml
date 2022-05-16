@@ -12,7 +12,8 @@ services:
       - MONGODB_ADVERTISED_HOSTNAME=mongos
     ports:
       - "27017:27017"
-
+    networks:
+      - shared
   mongo-shard-0:
     image: 'bitnami/mongodb-sharded:latest'
     environment:
@@ -25,7 +26,8 @@ services:
       - MONGODB_ADVERTISED_HOSTNAME=mongo-shard-0
     ports:
       - "27018:27017"
-
+    networks:
+      - shared
   mongo-shard-1:
     image: 'bitnami/mongodb-sharded:latest'
     environment:
@@ -38,7 +40,8 @@ services:
       - MONGODB_ADVERTISED_HOSTNAME=mongo-shard-1
     ports:
       - "27019:27017"
-
+    networks:
+      - shared
   mongo-shard-2:
     image: 'bitnami/mongodb-sharded:latest'
     environment:
@@ -51,7 +54,8 @@ services:
       - MONGODB_ADVERTISED_HOSTNAME=mongo-shard-2
     ports:
       - "27020:27017"
-
+    networks:
+      - shared
   mongo-configsvr:
     image: 'bitnami/mongodb-sharded:latest'
     environment:
@@ -61,7 +65,8 @@ services:
       - MONGODB_REPLICA_SET_KEY=OmarRSKey
       - MONGODB_REPLICA_SET_NAME=config-replicaset
       - MONGODB_ADVERTISED_HOSTNAME=mongo-configsvr
-
+    networks:
+      - shared
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -73,13 +78,15 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
       - cadvisor
-
+    networks:
+      - shared
   grafana:
     image: grafana/grafana-enterprise:latest
     ports:
       - 3000:3000
     user: '104'
-
+    networks:
+      - shared
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
@@ -96,3 +103,7 @@ services:
       - mongo-shard-1
       - mongo-shard-2
       - mongo-configsvr
+    networks:
+      - shared
+networks:
+  shared: {}
